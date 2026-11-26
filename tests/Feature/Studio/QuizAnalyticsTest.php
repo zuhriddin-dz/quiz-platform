@@ -210,10 +210,11 @@ it('averages the answer time', function () {
 });
 
 it('names the most-picked wrong option', function () {
-    $quiz = Quiz::factory()->published()->create();
-    $question = Question::factory()->for($quiz)->at(1)
-        ->withOptions(['Right', 'Tempting', 'Odd', 'Odder'], 0)
-        ->create();
+    $quiz = Quiz::factory()->published()->withSpecificQuestions(
+        Question::factory()->at(1)->withOptions(['Right', 'Tempting', 'Odd', 'Odder'], 0)
+    )->create();
+
+    $question = $quiz->questions()->first();
 
     // Option 1 picked three times, option 2 once.
     foreach (range(1, 3) as $ignored) {
@@ -234,10 +235,11 @@ it('names the most-picked wrong option', function () {
 });
 
 it('ignores timeouts and focus losses when finding the most-picked wrong option', function () {
-    $quiz = Quiz::factory()->published()->create();
-    $question = Question::factory()->for($quiz)->at(1)
-        ->withOptions(['Right', 'Wrong', 'Odd', 'Odder'], 0)
-        ->create();
+    $quiz = Quiz::factory()->published()->withSpecificQuestions(
+        Question::factory()->at(1)->withOptions(['Right', 'Wrong', 'Odd', 'Odder'], 0)
+    )->create();
+
+    $question = $quiz->questions()->first();
 
     analyticsRun($quiz, User::factory()->create(), [
         ['question' => $question, 'correct' => false, 'chosen' => 1],

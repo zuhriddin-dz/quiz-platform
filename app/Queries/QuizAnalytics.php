@@ -98,7 +98,11 @@ final class QuizAnalytics
             'unique_guests' => $guests,
             // Null rather than 0 with no runs: "0% pass rate" from no data is
             // a lie, and the page shows a dash instead.
-            'pass_rate' => $runs === 0 ? null : $passes / $runs,
+            //
+            // Cast because PHP's `/` returns an INT when the division is
+            // exact — 0/4 is int(0), not 0.0 — so without this the JSON type
+            // changes depending on the data.
+            'pass_rate' => $runs === 0 ? null : (float) ($passes / $runs),
         ];
     }
 
@@ -133,7 +137,9 @@ final class QuizAnalytics
                  */
                 'answers' => $answers,
                 'correct' => (int) ($row->correct ?? 0),
-                'correct_rate' => $answers === 0 ? null : ((int) $row->correct) / $answers,
+                // (float) for the same reason as `pass_rate`: exact division
+                // in PHP yields an int.
+                'correct_rate' => $answers === 0 ? null : (float) ((int) $row->correct / $answers),
                 'average_time_ms' => $row?->avg_time_ms === null ? null : (int) round((float) $row->avg_time_ms),
 
                 'most_picked_wrong_option' => $wrongIndex === null ? null : [

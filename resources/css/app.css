@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+/*
+ * Tailwind 4 configures itself from CSS, so there is no tailwind.config.js.
+ *
+ * The kit's original file carried the shadcn-vue colour system: ~70 lines of
+ * `--background`, `--foreground`, `--border` HSL variables plus
+ * `@apply border-border` and `@apply bg-background text-foreground`. Those
+ * class names only existed because the deleted tailwind.config.js mapped them
+ * onto the variables, so under Tailwind 4 they fail the build outright:
+ *
+ *     Cannot apply unknown utility class `border-border`
+ *
+ * They are gone rather than ported because nothing in this app uses them —
+ * every component states its colours literally (neutral-*, emerald-*,
+ * amber-*, red-*, indigo-*). If the kit's `components/ui/**` primitives are
+ * ever actually imported, that theme has to come back as a `@theme` block.
+ */
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+/*
+ * The play screen reads better without the browser pulling focus rings on
+ * mouse clicks, but keyboard focus must stay visible — WASD play depends on
+ * it, and so does anyone navigating the Studio by keyboard.
+ */
+@layer base {
+    :focus-visible {
+        outline: 2px solid currentColor;
+        outline-offset: 2px;
+    }
+}

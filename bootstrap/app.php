@@ -33,6 +33,18 @@ return Application::configure(basePath: dirname(__DIR__))
          */
         $middleware->trustProxies(at: '*');
 
+        /*
+         * There is no `login` route — R1.2 deleted the kit's entire password
+         * flow — but Laravel's `auth` middleware redirects unauthenticated
+         * users to `route('login')` by default. That threw
+         * RouteNotFoundException, so a guest opening /plays or /studio, or
+         * POSTing a vote, got a 500 instead of a sign-in prompt.
+         *
+         * Sending them to Google directly is also what R7.8 asks for:
+         * "Clicking either prompts Google sign-in."
+         */
+        $middleware->redirectGuestsTo(fn () => route('auth.google.redirect'));
+
         $middleware->web(append: [
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,

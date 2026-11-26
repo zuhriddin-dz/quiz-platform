@@ -42,12 +42,33 @@ final class GuestToken
     }
 
     /**
-     * The token for the current request, set by EnsureGuestToken.
+     * The token for the current request.
+     *
+     * Normally EnsureGuestToken has already resolved it into a request
+     * attribute. But it CANNOT be relied on to have run: `ThrottleRequests`
+     * sits in Laravel's default middleware priority list, which hoists it
+     * ahead of anything appended to the web group — so a rate limiter asking
+     * who this guest is arrives here BEFORE the attribute exists.
+     *
+     * Without the fallback below, every guest resolved to null inside the
+     * limiter and they all shared one `no-token|IP` bucket: one person on a
+     * school or office connection could throttle everybody behind it, which
+     * is the precise failure the token+IP key exists to prevent.
+     *
+     * Reading the cookie directly is safe at that point because
+     * `EncryptCookies` is higher in the same priority list, so the value is
+     * already decrypted.
      */
     public static function fromRequest(Request $request): ?string
     {
         $token = $request->attributes->get(self::ATTRIBUTE);
 
-        return self::isValid($token) ? $token : null;
+        if (self::isValid($token)) {
+            return $token;
+        }
+
+        $cookie = $request->cookie(self::COOKIE);
+
+        return self::isValid($cookie) ? $cookie : null;
     }
 }

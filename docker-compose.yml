@@ -31,6 +31,10 @@ services:
       target: dev
     environment:
       PHP_IDE_CONFIG: serverName=quiz-app
+      # Composer's default 300s process timeout is not enough to unzip
+      # laravel/framework onto a Windows bind mount — the install dies at
+      # ~113/114 packages and leaves vendor/ without an autoloader.
+      COMPOSER_PROCESS_TIMEOUT: 0
     volumes:
       - .:/var/www/html
     ports:

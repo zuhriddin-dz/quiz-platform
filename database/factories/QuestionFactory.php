@@ -7,6 +7,7 @@ namespace Database\Factories;
 use App\Models\Question;
 use App\Models\Quiz;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Question>
@@ -22,9 +23,25 @@ class QuestionFactory extends Factory
      */
     public function definition(): array
     {
-        // Distinct even after trimming and case-folding (R4.1), which rules
-        // out faker words colliding.
-        $options = $this->faker->unique()->words(Question::OPTION_COUNT);
+        /*
+         * Options must be distinct after trimming and case-folding (R4.1).
+         *
+         * `$this->faker->unique()->words(4)` does NOT do that: unique()
+         * applies to the ARRAY words() returns, not to the words inside it,
+         * so a single question could get ['dog', 'cat', 'dog', 'bird'] and
+         * silently fail publish validation. That is what made
+         * `withQuestions(15)` unpublishable about half the time.
+         *
+         * Building from one stem with distinct suffixes guarantees it, with
+         * no reliance on faker's uniqueness pool (which 15 questions x 4
+         * options can exhaust).
+         */
+        $stem = $this->faker->word().'-'.Str::lower(Str::random(6));
+
+        $options = array_map(
+            static fn (int $index): string => "{$stem}-{$index}",
+            range(1, Question::OPTION_COUNT),
+        );
 
         return [
             'quiz_id' => Quiz::factory(),

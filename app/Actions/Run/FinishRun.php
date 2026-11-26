@@ -98,7 +98,12 @@ final class FinishRun
             return [
                 'attempt' => $stat->attempts,
                 'best_reached' => $stat->best_reached,
-                'passed' => $stat->passed,
+                // Cast because `firstOrNew` leaves the attribute unset on a
+                // new row that never took the pass branch: the column
+                // defaults to false in the database, but the in-memory model
+                // still reads null, and the result screen's contract says
+                // bool.
+                'passed' => (bool) $stat->passed,
             ];
         });
     }

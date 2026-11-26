@@ -383,11 +383,11 @@ it('lets a guest play and submit a casual run', function () {
     $quiz = casualQuiz(5);
     $token = GuestToken::generate();
 
-    $this->withUnencryptedCookie(GuestToken::COOKIE, $token)
+    $this->withCredentials()->withCookie(GuestToken::COOKIE, $token)
         ->postJson(route('runs.store', $quiz))
         ->assertCreated();
 
-    $this->withUnencryptedCookie(GuestToken::COOKIE, $token)
+    $this->withCredentials()->withCookie(GuestToken::COOKIE, $token)
         ->postJson(route('runs.submit', QuizRun::sole()), ['answers' => honestLog($quiz)])
         ->assertJsonPath('verdict', 'passed')
         // Guests have no stats row, so the result screen hides that line.

@@ -15,27 +15,27 @@ it('issues a guest token cookie on the first request', function () {
     $response->assertOk();
     $response->assertCookie(GuestToken::COOKIE);
 
-    expect(GuestToken::isValid($response->getCookie(GuestToken::COOKIE, false)?->getValue()))
+    expect(GuestToken::isValid($response->getCookie(GuestToken::COOKIE)?->getValue()))
         ->toBeTrue();
 });
 
 it('reuses an existing token instead of issuing a new one', function () {
     $token = GuestToken::generate();
 
-    $response = $this->withUnencryptedCookie(GuestToken::COOKIE, $token)
+    $response = $this->withCredentials()->withCookie(GuestToken::COOKIE, $token)
         ->get(route('home'));
 
     $response->assertOk();
 
     // Nothing new queued: the request already had a valid token.
-    expect($response->getCookie(GuestToken::COOKIE, false))->toBeNull();
+    expect($response->getCookie(GuestToken::COOKIE))->toBeNull();
 });
 
 it('replaces a tampered token rather than trusting it', function () {
-    $response = $this->withUnencryptedCookie(GuestToken::COOKIE, 'not-a-ulid')
+    $response = $this->withCredentials()->withCookie(GuestToken::COOKIE, 'not-a-ulid')
         ->get(route('home'));
 
-    $issued = $response->getCookie(GuestToken::COOKIE, false)?->getValue();
+    $issued = $response->getCookie(GuestToken::COOKIE)?->getValue();
 
     expect($issued)->not->toBe('not-a-ulid')
         ->and(GuestToken::isValid($issued))->toBeTrue();
@@ -48,7 +48,7 @@ it('issues a token to signed-in users too, so signing out keeps the identity', f
 });
 
 it('sets a long-lived, http-only cookie', function () {
-    $cookie = $this->get(route('home'))->getCookie(GuestToken::COOKIE, false);
+    $cookie = $this->get(route('home'))->getCookie(GuestToken::COOKIE);
 
     expect($cookie)->not->toBeNull()
         ->and($cookie->isHttpOnly())->toBeTrue()

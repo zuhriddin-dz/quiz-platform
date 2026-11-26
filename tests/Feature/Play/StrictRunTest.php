@@ -279,20 +279,29 @@ it('refuses an answer from a different user', function () {
 it('refuses an answer from a guest on a signed-in player’s run', function () {
     $quiz = playableQuiz();
 
-    $this->actingAs(User::factory()->create())->postJson(route('runs.store', $quiz));
+    /*
+     * The run is built by factory rather than by POSTing as the owner:
+     * `actingAs()` persists for the rest of the test, so the "guest" request
+     * below would still have been authenticated as the owner and allowed.
+     */
+    $run = QuizRun::factory()
+        ->for($quiz)
+        ->forUser(User::factory()->create())
+        ->withOrder($quiz->questions->pluck('id')->all())
+        ->create();
 
-    $this->withUnencryptedCookie(GuestToken::COOKIE, GuestToken::generate())
-        ->postJson(route('runs.answer', QuizRun::sole()), ['reason' => 'timeout'])
+    $this->withCredentials()->withCookie(GuestToken::COOKIE, GuestToken::generate())
+        ->postJson(route('runs.answer', $run), ['reason' => 'timeout'])
         ->assertForbidden();
 });
 
 it('refuses an answer from a guest with a different token', function () {
     $quiz = playableQuiz();
 
-    $this->withUnencryptedCookie(GuestToken::COOKIE, GuestToken::generate())
+    $this->withCredentials()->withCookie(GuestToken::COOKIE, GuestToken::generate())
         ->postJson(route('runs.store', $quiz));
 
-    $this->withUnencryptedCookie(GuestToken::COOKIE, GuestToken::generate())
+    $this->withCredentials()->withCookie(GuestToken::COOKIE, GuestToken::generate())
         ->postJson(route('runs.answer', QuizRun::sole()), ['reason' => 'timeout'])
         ->assertForbidden();
 });
@@ -302,7 +311,7 @@ it('refuses an answer from a guest with a different token', function () {
 it('lets a guest play a published quiz', function () {
     $token = GuestToken::generate();
 
-    $this->withUnencryptedCookie(GuestToken::COOKIE, $token)
+    $this->withCredentials()->withCookie(GuestToken::COOKIE, $token)
         ->postJson(route('runs.store', playableQuiz()))
         ->assertCreated();
 
@@ -315,7 +324,7 @@ it('lets a guest play a published quiz', function () {
 it('lets a guest play an unlisted published quiz', function () {
     $quiz = Quiz::factory()->published()->unlisted()->strict()->withQuestions(5)->create();
 
-    $this->withUnencryptedCookie(GuestToken::COOKIE, GuestToken::generate())
+    $this->withCredentials()->withCookie(GuestToken::COOKIE, GuestToken::generate())
         ->postJson(route('runs.store', $quiz))
         ->assertCreated();
 });
@@ -351,9 +360,13 @@ it('shuffles: two runs rarely share a question order', function () {
     $player = User::factory()->create();
 
     $orders = collect(range(1, 6))->map(function () use ($quiz, $player): string {
-        $this->actingAs($player)->postJson(route('runs.store', $quiz));
+        // Read the run by the id the response returns. `latest('started_at')`
+        // is ambiguous here: that column is second-precision and all six runs
+        // land inside the same second, so it kept handing back the same row
+        // and every order looked identical.
+        $id = $this->actingAs($player)->postJson(route('runs.store', $quiz))->json('run.id');
 
-        return implode(',', QuizRun::latest('started_at')->first()->question_order);
+        return implode(',', QuizRun::findOrFail($id)->question_order);
     });
 
     // Six identical orders out of 8! possibilities would mean no shuffle.

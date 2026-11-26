@@ -62,12 +62,12 @@ it('throttles a guest by token and IP together', function () {
     $token = GuestToken::generate();
 
     foreach (range(1, 3) as $ignored) {
-        $this->withUnencryptedCookie(GuestToken::COOKIE, $token)
+        $this->withCredentials()->withCookie(GuestToken::COOKIE, $token)
             ->postJson(route('runs.store', $quiz))
             ->assertCreated();
     }
 
-    $this->withUnencryptedCookie(GuestToken::COOKIE, $token)
+    $this->withCredentials()->withCookie(GuestToken::COOKIE, $token)
         ->postJson(route('runs.store', $quiz))
         ->assertStatus(429);
 });
@@ -79,11 +79,11 @@ it('does not throttle a different guest token on the same IP', function () {
     $quiz = limitedQuiz();
 
     foreach (range(1, 3) as $ignored) {
-        $this->withUnencryptedCookie(GuestToken::COOKIE, GuestToken::generate())
+        $this->withCredentials()->withCookie(GuestToken::COOKIE, GuestToken::generate())
             ->postJson(route('runs.store', $quiz));
     }
 
-    $this->withUnencryptedCookie(GuestToken::COOKIE, GuestToken::generate())
+    $this->withCredentials()->withCookie(GuestToken::COOKIE, GuestToken::generate())
         ->postJson(route('runs.store', $quiz))
         ->assertCreated();
 });

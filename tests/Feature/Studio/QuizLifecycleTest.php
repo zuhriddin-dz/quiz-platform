@@ -85,7 +85,7 @@ it('closes a guest’s in-progress run on their next request', function () {
     $token = GuestToken::generate();
     $run = QuizRun::factory()->for($quiz)->forGuest($token)->create();
 
-    $this->withUnencryptedCookie(GuestToken::COOKIE, $token)
+    $this->withCredentials()->withCookie(GuestToken::COOKIE, $token)
         ->get(route('home'))
         ->assertOk();
 
@@ -156,12 +156,12 @@ it('duplicates a published quiz as a fresh draft', function () {
 
 it('copies question content and renumbers positions', function () {
     $creator = User::factory()->create();
-    $original = Quiz::factory()->for($creator)->published()->create();
-
-    Question::factory()->for($original)->at(3)->withOptions(['a', 'b', 'c', 'd'], 2)->create([
-        'prompt' => 'Which one?',
-    ]);
-    Question::factory()->for($original)->at(9)->withOptions(['w', 'x', 'y', 'z'], 0)->create();
+    // Gappy positions (3 and 9) on purpose: the copy must renumber to 1, 2.
+    $original = Quiz::factory()->for($creator)->published()->withSpecificQuestions(
+        Question::factory()->at(3)->withOptions(['a', 'b', 'c', 'd'], 2)
+            ->state(['prompt' => 'Which one?']),
+        Question::factory()->at(9)->withOptions(['w', 'x', 'y', 'z'], 0),
+    )->create();
 
     $this->actingAs($creator)->post(route('studio.quizzes.duplicate', $original));
 

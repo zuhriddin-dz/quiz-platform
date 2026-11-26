@@ -62,14 +62,20 @@ it('builds a quiz with questions, a run and an answer', function () {
 });
 
 it('casts enums and json columns on the way back out', function () {
-    $quiz = Quiz::factory()->casual()->published()->create();
-    $question = Question::factory()->for($quiz)->withOptions(['a', 'b', 'c', 'd'], 2)->create();
+    // The questions go through the factory's has() so they are written while
+    // the quiz is still a draft; adding one to a published quiz is refused by
+    // design (R4.2).
+    $quiz = Quiz::factory()
+        ->casual()
+        ->published()
+        ->withSpecificQuestions(Question::factory()->withOptions(['a', 'b', 'c', 'd'], 2))
+        ->create();
 
     $quiz->refresh();
-    $question->refresh();
+    $question = $quiz->questions()->first();
 
-    expect($quiz->mode)->toBeInstanceOf(App\Enums\QuizMode::class)
-        ->and($quiz->status)->toBeInstanceOf(App\Enums\QuizStatus::class)
+    expect($quiz->mode)->toBe(App\Enums\QuizMode::Casual)
+        ->and($quiz->status)->toBe(App\Enums\QuizStatus::Published)
         ->and($quiz->is_listed)->toBeBool()
         ->and($question->options)->toBe(['a', 'b', 'c', 'd'])
         ->and($question->correctOptionText())->toBe('c');

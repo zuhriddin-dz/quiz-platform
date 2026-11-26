@@ -17,7 +17,10 @@ function fakeGoogleUser(array $attributes = []): GoogleUser
 
     $googleUser->map([
         'id' => $attributes['id'] ?? '1098765432109876543210',
-        'name' => $attributes['name'] ?? 'Amina Yusuf',
+        // array_key_exists, not ??: a test passing `name => null` is asserting
+        // that Google sent no name, and ?? would quietly restore the default —
+        // which made the fallback test pass its own default back in.
+        'name' => array_key_exists('name', $attributes) ? $attributes['name'] : 'Amina Yusuf',
         'email' => $attributes['email'] ?? 'amina@example.com',
         'avatar' => $attributes['avatar'] ?? 'https://lh3.googleusercontent.com/a/first',
     ]);
