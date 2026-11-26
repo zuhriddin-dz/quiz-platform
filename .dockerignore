@@ -1,0 +1,32 @@
+.git
+.gitignore
+.github
+
+# Never ship host-built dependencies into the image; the build stage
+# installs its own.
+node_modules
+vendor
+
+# Host secrets and local state
+.env
+.env.*
+!.env.example
+storage/logs/*
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+database/*.sqlite
+database/*.sqlite-journal
+
+# Build output (regenerated in the build stage)
+public/build
+public/hot
+
+# Local tooling / docs
+.idea
+.vscode
+.fleet
+_scaffold
+docker-compose.override.yml
+*.md
+!docker.md

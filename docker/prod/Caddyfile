@@ -1,0 +1,25 @@
+{
+	frankenphp
+	order php_server before file_server
+
+	# Railway terminates TLS at its edge, so this server speaks plain HTTP.
+	auto_https off
+	servers {
+		trusted_proxies static 0.0.0.0/0 ::/0
+	}
+}
+
+# Railway injects $PORT. Binding anything else is the usual first-deploy failure.
+:{$PORT:8080} {
+	root /app/public
+	encode zstd gzip
+
+	php_server {
+		index index.php
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

@@ -1,0 +1,57 @@
+# Local development only. Production is Railway (see PLAN.md → Deployment).
+# R0.1: exactly three services — db, app, webserver.
+
+services:
+  # ---------------------------------------------------------------- R0.4
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-quiz}
+      POSTGRES_USER: ${DB_USERNAME:-quiz}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "${FORWARD_DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-quiz} -d ${DB_DATABASE:-quiz}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  # ------------------------------------------------------------ R0.2, R0.3
+  # PHP and Node live in the SAME container: Wayfinder's Vite plugin shells
+  # out to `php artisan wayfinder:generate`, so the Vite dev server has to
+  # run where PHP is. There is deliberately no separate vite service.
+  app:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+      target: dev
+    environment:
+      PHP_IDE_CONFIG: serverName=quiz-app
+    volumes:
+      - .:/var/www/html
+    ports:
+      # Vite dev server / HMR, served from inside this container.
+      - "${VITE_PORT:-5173}:5173"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------- R0.1
+  webserver:
+    image: nginx:1.27-alpine
+    ports:
+      - "${APP_PORT:-8000}:80"
+    volumes:
+      - .:/var/www/html:ro
+      - ./docker/webserver/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+
+volumes:
+  pgdata:
