@@ -85,9 +85,15 @@ COPY . .
 # `npm run build` triggers wayfinder:generate, which boots the framework —
 # hence a throwaway .env with a throwaway key. Real config comes from
 # Railway's environment at runtime; nothing here is cached into the image.
+#
+# ORDER MATTERS. `composer install` above ran with --no-autoloader, so
+# vendor/autoload.php does not exist yet and ANY artisan call before
+# dump-autoload dies with "Failed opening required vendor/autoload.php".
+# dump-autoload must therefore come first, and it needs the .env in place
+# because its post-autoload-dump hook runs `artisan package:discover`.
 RUN cp .env.example .env \
+    && composer dump-autoload --no-dev --optimize --classmap-authoritative \
     && php artisan key:generate --no-interaction \
-    && composer dump-autoload --optimize --classmap-authoritative \
     && npm run build \
     && rm -rf node_modules .env
 
