@@ -48,10 +48,9 @@ const MODES = [
     { value: 'casual', label: 'Casual' },
 ] as const;
 
-/** Keeps the other filters when one changes, and drops page 1 from the URL. */
+/** Keeps the other filters when one changes, and drops defaults from the URL. */
 const apply = (changes: Record<string, string | null>): void => {
     const next: Record<string, string> = {};
-
     const merged = { ...props.filters, ...changes };
 
     if (merged.q) next.q = merged.q;
@@ -60,56 +59,84 @@ const apply = (changes: Record<string, string | null>): void => {
 
     router.get('/', next, { preserveState: false, preserveScroll: true });
 };
+
+/*
+ * Segmented controls rather than selects: three options each, always visible,
+ * one tap instead of two — and the current state is readable without opening
+ * anything.
+ */
+const segment = (active: boolean): string =>
+    active
+        ? 'bg-surface text-text shadow-[var(--shadow-card)]'
+        : 'text-text-muted hover:text-text';
 </script>
 
 <template>
     <Head title="Explore" />
 
     <div>
-        <header class="mb-6 flex flex-wrap items-end justify-between gap-4">
-            <div>
-                <h1 class="text-xl font-semibold tracking-tight">Explore</h1>
-                <p class="text-sm text-neutral-500">
-                    <template v-if="filters.q">
-                        {{ quizzes.total }} result{{ quizzes.total === 1 ? '' : 's' }} for
-                        “{{ filters.q }}”
-                    </template>
-                    <template v-else>
-                        Time-limited, sudden-death vocabulary quizzes. No account needed to play.
-                    </template>
-                </p>
-            </div>
+        <header class="mb-8">
+            <h1 class="font-display text-3xl leading-tight">
+                <template v-if="filters.q">
+                    Results for “{{ filters.q }}”
+                </template>
+                <template v-else>Explore</template>
+            </h1>
 
-            <div class="flex flex-wrap items-center gap-4">
-                <div class="flex items-center gap-2">
-                    <label for="mode" class="text-xs font-medium text-neutral-500">Mode</label>
-                    <select
-                        id="mode"
-                        :value="filters.mode"
-                        class="rounded-md border px-2 py-1 text-sm"
-                        @change="apply({ mode: ($event.target as HTMLSelectElement).value })"
-                    >
-                        <option v-for="mode in MODES" :key="mode.value" :value="mode.value">
-                            {{ mode.label }}
-                        </option>
-                    </select>
-                </div>
-
-                <div class="flex items-center gap-2">
-                    <label for="sort" class="text-xs font-medium text-neutral-500">Sort</label>
-                    <select
-                        id="sort"
-                        :value="filters.sort"
-                        class="rounded-md border px-2 py-1 text-sm"
-                        @change="apply({ sort: ($event.target as HTMLSelectElement).value })"
-                    >
-                        <option v-for="sort in SORTS" :key="sort.value" :value="sort.value">
-                            {{ sort.label }}
-                        </option>
-                    </select>
-                </div>
-            </div>
+            <p class="mt-2 max-w-lg text-text-muted">
+                <template v-if="filters.q">
+                    {{ quizzes.total }} quiz{{ quizzes.total === 1 ? '' : 'zes' }} found.
+                </template>
+                <template v-else>
+                    Time-limited, sudden-death vocabulary quizzes. One wrong answer ends the run.
+                    No account needed to play.
+                </template>
+            </p>
         </header>
+
+        <div class="mb-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+            <div class="flex items-center gap-2">
+                <span id="mode-label" class="label-eyebrow">Mode</span>
+                <div
+                    role="group"
+                    aria-labelledby="mode-label"
+                    class="flex rounded-lg bg-surface-sunken p-0.5"
+                >
+                    <button
+                        v-for="mode in MODES"
+                        :key="mode.value"
+                        type="button"
+                        :aria-pressed="filters.mode === mode.value"
+                        :class="segment(filters.mode === mode.value)"
+                        class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
+                        @click="apply({ mode: mode.value })"
+                    >
+                        {{ mode.label }}
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <span id="sort-label" class="label-eyebrow">Sort</span>
+                <div
+                    role="group"
+                    aria-labelledby="sort-label"
+                    class="flex rounded-lg bg-surface-sunken p-0.5"
+                >
+                    <button
+                        v-for="sort in SORTS"
+                        :key="sort.value"
+                        type="button"
+                        :aria-pressed="filters.sort === sort.value"
+                        :class="segment(filters.sort === sort.value)"
+                        class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
+                        @click="apply({ sort: sort.value })"
+                    >
+                        {{ sort.label }}
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- R10.4 — two different empty states, because they need different
              answers: a filter that matched nothing is the user's doing, an
@@ -122,7 +149,7 @@ const apply = (changes: Record<string, string | null>): void => {
             <template #action>
                 <button
                     type="button"
-                    class="rounded-md border px-3 py-1.5 text-sm font-medium"
+                    class="rounded-lg border border-border-strong px-4 py-2 text-sm font-medium hover:bg-surface-soft"
                     @click="apply({ q: null, mode: 'all' })"
                 >
                     Clear filters
@@ -138,7 +165,7 @@ const apply = (changes: Record<string, string | null>): void => {
             <template #action>
                 <Link
                     href="/studio/quizzes/create"
-                    class="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white"
+                    class="inline-block rounded-lg bg-accent px-4 py-2 text-sm font-medium text-on-accent hover:bg-accent-hover"
                 >
                     Create a quiz
                 </Link>
@@ -151,16 +178,30 @@ const apply = (changes: Record<string, string | null>): void => {
             </li>
         </ul>
 
-        <nav v-if="quizzes.last_page > 1" class="mt-8 flex flex-wrap justify-center gap-1">
+        <nav
+            v-if="quizzes.last_page > 1"
+            class="mt-10 flex items-center justify-center gap-2"
+            aria-label="Pagination"
+        >
             <template v-for="link in quizzes.links" :key="link.label">
                 <Link
                     v-if="link.url"
                     :href="link.url"
-                    :class="link.active ? 'bg-neutral-900 text-white' : 'hover:bg-neutral-50'"
-                    class="rounded border px-3 py-1 text-sm"
+                    :aria-current="link.active ? 'page' : undefined"
+                    :class="
+                        link.active
+                            ? 'border-border-strong bg-surface font-medium'
+                            : 'border-transparent text-text-muted hover:bg-surface-soft'
+                    "
+                    class="rounded-lg border px-3 py-1.5 text-sm"
                     v-html="link.label"
                 />
-                <span v-else class="rounded px-3 py-1 text-sm text-neutral-300" v-html="link.label" />
+                <span
+                    v-else
+                    class="px-3 py-1.5 text-sm text-text-faint"
+                    aria-hidden="true"
+                    v-html="link.label"
+                />
             </template>
         </nav>
     </div>

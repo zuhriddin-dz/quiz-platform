@@ -66,8 +66,16 @@ it('accepts a correct answer well inside the timer', function () {
 });
 
 it('accepts a correct answer that is past the timer but inside grace', function () {
-    // 5s timer, 1.5s grace -> 6.0s is late for the player but allowed.
-    [$run, , $player] = strictRunAt(6.0);
+    /*
+     * 5s timer + 1.5s grace puts the boundary at 6.5s, so the valid window
+     * for "late but forgiven" is 5.0 < x < 6.5.
+     *
+     * 5.5 rather than the midpoint: elapsed only ever GROWS between building
+     * the run and the request arriving, so the risk is entirely on the upper
+     * side. This leaves a full second of slack before the test tips into a
+     * timeout, which it did on a loaded machine at 6.0.
+     */
+    [$run, , $player] = strictRunAt(5.5);
 
     $this->actingAs($player)
         ->postJson(route('runs.answer', $run), ['displayed_index' => correctDisplayedIndex($run)])

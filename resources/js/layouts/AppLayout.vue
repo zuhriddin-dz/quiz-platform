@@ -6,10 +6,8 @@
  * a persistent layout: Inertia does not re-mount it between visits, so the
  * sidebar does not flicker and the search box keeps focus.
  *
- * The sidebar is hidden below `lg`. The spec describes a desktop layout and
- * says nothing about small screens, so this is a judgment call: on a phone the
- * recent-plays list would push the quiz grid off the fold, and the same links
- * are in the avatar menu.
+ * Colours come from semantic tokens only (see resources/css/app.css), so this
+ * file names roles — surface, border-subtle, text-muted — and never a hue.
  */
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
@@ -19,11 +17,10 @@ import TopBar from '@/components/TopBar.vue';
 const page = usePage();
 
 /*
- * R10.4 — the loading state, in one place rather than per page.
- *
- * Explore's filters, the Studio's actions and every navigation go through
- * Inertia, so listening here covers all of them. The bar is deliberately
- * slight: a full-page spinner on a 60ms local visit is worse than nothing.
+ * R10.4 — the loading state, in one place rather than per page. Explore's
+ * filters, the Studio's actions and every navigation go through Inertia, so
+ * listening here covers all of them. Deliberately slight: a full-page spinner
+ * on a 60ms local visit is worse than nothing.
  */
 const loading = ref(false);
 
@@ -55,34 +52,38 @@ const flash = computed(
 </script>
 
 <template>
-    <div class="min-h-screen bg-white text-neutral-900">
+    <div class="min-h-screen bg-bg text-text">
         <!-- R10.4 — a thin indeterminate bar while a visit is in flight. -->
         <div
             v-if="loading"
-            class="fixed inset-x-0 top-0 z-50 h-0.5 overflow-hidden bg-neutral-200"
+            class="fixed inset-x-0 top-0 z-50 h-0.5 overflow-hidden bg-surface-sunken"
             role="status"
             aria-label="Loading"
         >
-            <div class="loading-bar h-full w-1/3 bg-neutral-900" />
+            <div class="loading-bar h-full w-1/3 bg-accent" />
         </div>
 
         <TopBar :search="search" />
 
         <!-- Flash messages from the lifecycle redirects (Phase 4). -->
-        <div v-if="flash.status || flash.error" class="mx-auto max-w-6xl px-6 pt-4">
+        <div v-if="flash.status || flash.error" class="mx-auto max-w-6xl px-6 pt-5">
             <p
                 v-if="flash.status"
-                class="rounded-md bg-emerald-50 p-3 text-sm text-emerald-800"
+                class="rounded-lg border border-border-subtle bg-surface px-4 py-3 text-sm"
                 role="status"
             >
                 {{ flash.status }}
             </p>
-            <p v-if="flash.error" class="rounded-md bg-red-50 p-3 text-sm text-red-700" role="alert">
+            <p
+                v-if="flash.error"
+                class="rounded-lg border border-danger-border bg-surface px-4 py-3 text-sm text-danger-text"
+                role="alert"
+            >
                 {{ flash.error }}
             </p>
         </div>
 
-        <div class="mx-auto flex max-w-6xl gap-8 px-6 py-8">
+        <div class="mx-auto flex max-w-6xl gap-12 px-6 py-10">
             <div class="hidden lg:block">
                 <Sidebar />
             </div>
@@ -96,7 +97,7 @@ const flash = computed(
 
 <style scoped>
 .loading-bar {
-    animation: slide 1s ease-in-out infinite;
+    animation: slide 1s var(--ease-out-quick) infinite;
 }
 
 @keyframes slide {
@@ -108,11 +109,12 @@ const flash = computed(
     }
 }
 
+/* The global reduced-motion rule flattens the animation; give the bar a
+   visible resting state so "loading" is still carried without movement. */
 @media (prefers-reduced-motion: reduce) {
     .loading-bar {
-        animation: none;
         width: 100%;
-        opacity: 0.4;
+        opacity: 0.5;
     }
 }
 </style>

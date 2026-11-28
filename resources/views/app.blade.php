@@ -13,8 +13,13 @@
 
         <title inertia>{{ config('app.name', 'Quiz') }}</title>
 
+        {{-- Sans for the interface, serif for quiz titles and question
+             prompts — the words are the product. --}}
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
+        <link
+            href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600|instrument-serif:400"
+            rel="stylesheet"
+        />
 
         {{-- The kit's @routes directive is gone with Ziggy; this app uses
              plain URLs and Wayfinder instead. --}}

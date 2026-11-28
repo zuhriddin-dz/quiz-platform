@@ -3,8 +3,8 @@
  * R5.10 — both result screens.
  *
  * The correct answer is NEVER shown. On a wrong answer the picked option is
- * highlighted red by OptionGrid (which stays on screen behind this); a timeout
- * or focus loss gets a banner instead, because nothing was picked.
+ * marked by OptionGrid (which stays on screen behind this); a timeout or focus
+ * loss gets a banner instead, because nothing was picked.
  *
  * "Attempt #N — Best: X/Y" appears only for signed-in players: a guest has no
  * stats row, so the server sends nulls.
@@ -15,14 +15,9 @@
 import { onMounted, ref } from 'vue';
 import type { CasualVerdict, FailedVerdict, PassedVerdict } from '@/types/play';
 
-/**
- * Shared by both modes. Casual sends the same fields plus a nullable
- * `failure_reason`, so the union covers it without a second component — a
- * player should see one result screen, not two.
- */
 const props = defineProps<{ result: PassedVerdict | FailedVerdict | CasualVerdict }>();
 
-defineEmits<{ (event: 'retry'): void }>();
+defineEmits<{ (event: 'retry'): void; (event: 'exit'): void }>();
 
 const canvas = ref<HTMLCanvasElement | null>(null);
 
@@ -33,7 +28,7 @@ const banner = (): string | null => {
 
     if (reason === null) return null;
 
-    // A wrong answer has no banner: the picked option is highlighted instead.
+    // A wrong answer has no banner: the picked option is marked instead.
     return { wrong_answer: null, timeout: "Time's up", focus_lost: 'Tab left' }[reason];
 };
 
@@ -76,12 +71,12 @@ const confetti = (): void => {
             context.save();
             context.translate(piece.x, piece.y);
             context.rotate(piece.angle);
-            context.fillStyle = `hsl(${piece.hue} 80% 60%)`;
+            context.fillStyle = `hsl(${piece.hue} 80% 65%)`;
             context.fillRect(-piece.size / 2, -piece.size / 2, piece.size, piece.size * 0.6);
             context.restore();
         }
 
-        // Three seconds, then stop — it is a flourish, not a screensaver.
+        // Three seconds, then stop — a flourish, not a screensaver.
         if (performance.now() - started < 3000) {
             requestAnimationFrame(draw);
         } else {
@@ -106,32 +101,50 @@ onMounted(() => {
             aria-hidden="true"
         />
 
-        <div class="relative space-y-4 py-8">
+        <div class="relative space-y-3 py-8">
             <template v-if="result.verdict === 'passed'">
-                <p class="text-2xl font-bold">Perfect! {{ result.reached }}/{{ result.question_count }}</p>
+                <p class="label-eyebrow text-success-text">Perfect run</p>
+                <p class="font-display text-3xl">
+                    {{ result.reached }}/{{ result.question_count }}
+                </p>
             </template>
 
             <template v-else>
-                <p v-if="banner()" class="text-xl font-semibold text-red-600">{{ banner() }}</p>
-                <p class="text-2xl font-bold">Reached {{ result.reached }}/{{ result.question_count }}</p>
+                <p v-if="banner()" class="label-eyebrow text-danger-text">{{ banner() }}</p>
+                <p v-else class="label-eyebrow text-danger-text">Wrong answer</p>
+                <p class="font-display text-3xl">
+                    Reached {{ result.reached }}/{{ result.question_count }}
+                </p>
             </template>
 
             <!-- Signed-in players only; guests get nulls from the server. -->
-            <p v-if="result.attempt !== null" class="text-sm text-neutral-500">
-                Attempt #{{ result.attempt }} — Best: {{ result.best_reached }}/{{ result.question_count }}
+            <p v-if="result.attempt !== null" class="text-sm text-text-muted tabular-nums">
+                Attempt #{{ result.attempt }} · Best {{ result.best_reached }}/{{
+                    result.question_count
+                }}
             </p>
 
-            <div class="flex items-center justify-center gap-4 pt-2">
+            <div class="flex flex-wrap items-center justify-center gap-3 pt-4">
                 <button
                     type="button"
-                    class="rounded-md bg-neutral-900 px-5 py-2 text-sm font-medium text-white"
+                    class="rounded-lg bg-accent px-6 py-2.5 text-sm font-medium text-on-accent transition-colors hover:bg-accent-hover"
                     @click="$emit('retry')"
                 >
                     Retry
                 </button>
+
+                <button
+                    type="button"
+                    class="rounded-lg border border-border-strong px-5 py-2.5 text-sm font-medium transition-colors hover:bg-surface"
+                    @click="$emit('exit')"
+                >
+                    Back to quiz
+                </button>
             </div>
 
-            <p class="text-xs text-neutral-400">Every retry reshuffles the questions and options.</p>
+            <p class="pt-1 text-xs text-text-faint">
+                Every retry reshuffles the questions and options.
+            </p>
         </div>
     </section>
 </template>

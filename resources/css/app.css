@@ -1,35 +1,266 @@
 @import "tailwindcss";
 
-/*
- * Tailwind 4 configures itself from CSS, so there is no tailwind.config.js.
- *
- * The kit's original file carried the shadcn-vue colour system: ~70 lines of
- * `--background`, `--foreground`, `--border` HSL variables plus
- * `@apply border-border` and `@apply bg-background text-foreground`. Those
- * class names only existed because the deleted tailwind.config.js mapped them
- * onto the variables, so under Tailwind 4 they fail the build outright:
- *
- *     Cannot apply unknown utility class `border-border`
- *
- * They are gone rather than ported because nothing in this app uses them —
- * every component states its colours literally (neutral-*, emerald-*,
- * amber-*, red-*, indigo-*). If the kit's `components/ui/**` primitives are
- * ever actually imported, that theme has to come back as a `@theme` block.
- */
+/* ============================================================================
+   Design foundation
+   ============================================================================
+
+   Two moods, one system.
+
+   BROWSING is warm paper: off-white, ink text, generous air. Calm, readable,
+   gets out of the way.
+
+   PLAYING is near-black: the question and the four options are the only lit
+   things on screen. A run is 2-10 seconds per question under sudden death, so
+   the screen should feel different from the catalogue — that contrast is the
+   thing people remember.
+
+   Both moods use the SAME semantic tokens. Components never name a colour;
+   they name a role (`bg-surface`, `text-muted`). Wrapping anything in `.night`
+   repoints those roles to the dark primitives, so the play screen changes mood
+   without a single component knowing about it.
+
+   Every text pair below was measured against the background it actually
+   renders on. Light body 16.75:1, dark body 17.49:1, the weakest text pair in
+   the system is 4.81:1, and control borders clear 3:1.
+   ========================================================================= */
 
 @theme {
+    /* ---- Type -------------------------------------------------------------
+       Sans for the interface, serif for the things people read as language:
+       quiz titles and question prompts. That split is most of the identity,
+       and it costs one extra font request on a family already loaded.         */
+
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
-        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+        'Apple Color Emoji', 'Segoe UI Emoji';
+    --font-serif: 'Instrument Serif', ui-serif, Georgia, serif;
+
+    /* A real scale, so sizes stop being chosen per component. */
+    --text-2xs: 0.6875rem;
+    --text-2xs--line-height: 1rem;
+    --text-2xs--letter-spacing: 0.04em;
+    --text-xs: 0.75rem;
+    --text-xs--line-height: 1.125rem;
+    --text-sm: 0.8125rem;
+    --text-sm--line-height: 1.25rem;
+    --text-base: 0.9375rem;
+    --text-base--line-height: 1.5rem;
+    --text-lg: 1.0625rem;
+    --text-lg--line-height: 1.625rem;
+    --text-xl: 1.375rem;
+    --text-xl--line-height: 1.75rem;
+    --text-2xl: 1.75rem;
+    --text-2xl--line-height: 2.125rem;
+    --text-3xl: 2.375rem;
+    --text-3xl--line-height: 2.625rem;
+    --text-4xl: 3.25rem;
+    --text-4xl--line-height: 3.375rem;
+
+    /* ---- Primitives: paper ---------------------------------------------- */
+    --color-paper-50: #fbfaf7;
+    --color-paper-100: #f6f3ed;
+    --color-paper-200: #efebe2;
+    --color-paper-300: #e7e1d7;
+    --color-paper-400: #8f877b;
+
+    --color-ink-500: #6b645a;
+    --color-ink-600: #57514a;
+    --color-ink-900: #1c1917;
+
+    /* ---- Primitives: night ----------------------------------------------- */
+    --color-night-950: #0c0c0e;
+    --color-night-900: #141418;
+    --color-night-800: #1e1e24;
+    --color-night-700: #2c2c35;
+    --color-night-600: #6a6a76;
+    --color-night-400: #a5a2ab;
+    --color-night-100: #f4f2ef;
+
+    /* ---- Primitives: accent + status -------------------------------------
+       One accent hue. Amber carries the brand, the primary action and the
+       timer — urgency without alarm.
+
+       There is deliberately NO warning ramp: amber is taken, and a second
+       orange-ish hue would collide with it. "Unavailable" and "not ready to
+       publish" are stated in words on neutral surfaces instead.              */
+    --color-amber-400: #fbbf24;
+    --color-amber-600: #b45309;
+    --color-amber-700: #92400e;
+
+    --color-green-400: #4ade80;
+    --color-green-700: #15803d;
+
+    --color-red-400: #f87171;
+    --color-red-700: #b91c1c;
+
+    /* ---- Shape and motion ------------------------------------------------ */
+    --radius-sm: 0.25rem;
+    --radius-md: 0.375rem;
+    --radius-lg: 0.625rem;
+    --radius-xl: 0.875rem;
+
+    --ease-out-quick: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ----------------------------------------------------------------------------
+   Semantic roles — paper mode is the default
+   -------------------------------------------------------------------------- */
+
+:root {
+    --bg: var(--color-paper-50);
+    --surface: #ffffff;
+    --surface-soft: var(--color-paper-100);
+    --surface-sunken: var(--color-paper-200);
+
+    --border-subtle: var(--color-paper-300);
+    --border-strong: var(--color-paper-400);
+
+    --text: var(--color-ink-900);
+    --text-muted: var(--color-ink-600);
+    --text-faint: var(--color-ink-500);
+
+    --accent: var(--color-amber-600);
+    --accent-hover: var(--color-amber-700);
+    --accent-text: var(--color-amber-600);
+    --on-accent: #ffffff;
+
+    --success-text: var(--color-green-700);
+    --danger-text: var(--color-red-700);
+    --danger-border: var(--color-red-700);
+
+    --ring: var(--color-amber-600);
+
+    --shadow-card: 0 1px 2px rgb(28 25 23 / 0.04), 0 4px 16px rgb(28 25 23 / 0.04);
 }
 
 /*
- * The play screen reads better without the browser pulling focus rings on
- * mouse clicks, but keyboard focus must stay visible — WASD play depends on
- * it, and so does anyone navigating the Studio by keyboard.
+ * The play surface. Same roles, dark values — so OptionGrid, Countdown and
+ * RunResult need no mode-specific classes at all.
  */
+.night {
+    --bg: var(--color-night-950);
+    --surface: var(--color-night-800);
+    --surface-soft: var(--color-night-900);
+    --surface-sunken: var(--color-night-700);
+
+    --border-subtle: var(--color-night-700);
+    --border-strong: var(--color-night-600);
+
+    --text: var(--color-night-100);
+    --text-muted: var(--color-night-400);
+    --text-faint: var(--color-night-400);
+
+    /* Brighter on dark: the 600 that works on paper is far too dim here. */
+    --accent: var(--color-amber-400);
+    --accent-hover: var(--color-amber-400);
+    --accent-text: var(--color-amber-400);
+    --on-accent: var(--color-night-950);
+
+    --success-text: var(--color-green-400);
+    --danger-text: var(--color-red-400);
+    --danger-border: var(--color-red-400);
+
+    --ring: var(--color-amber-400);
+
+    /* Dark surfaces separate by border, not shadow. */
+    --shadow-card: none;
+
+    color-scheme: dark;
+}
+
+/*
+ * `inline` so the utilities compile to `var(--surface)` rather than baking in
+ * today's value — which is what lets `.night` repoint them at runtime.
+ */
+@theme inline {
+    --color-bg: var(--bg);
+    --color-surface: var(--surface);
+    --color-surface-soft: var(--surface-soft);
+    --color-surface-sunken: var(--surface-sunken);
+
+    --color-border-subtle: var(--border-subtle);
+    --color-border-strong: var(--border-strong);
+
+    --color-text: var(--text);
+    --color-text-muted: var(--text-muted);
+    --color-text-faint: var(--text-faint);
+
+    --color-accent: var(--accent);
+    --color-accent-hover: var(--accent-hover);
+    --color-accent-text: var(--accent-text);
+    --color-on-accent: var(--on-accent);
+
+    --color-success-text: var(--success-text);
+    --color-danger-text: var(--danger-text);
+    --color-danger-border: var(--danger-border);
+
+    --color-ring: var(--ring);
+}
+
+/* ----------------------------------------------------------------------------
+   Base
+   -------------------------------------------------------------------------- */
+
 @layer base {
+    html {
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+        background-color: var(--bg);
+        color: var(--text);
+        font-family: var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+    }
+
+    /*
+     * Keyboard focus must stay obvious: WASD play depends on knowing where
+     * focus is, and so does anyone driving the Studio from the keyboard.
+     * Measured 4.81:1 on paper and 11.71:1 on night.
+     */
     :focus-visible {
-        outline: 2px solid currentColor;
+        outline: 2px solid var(--ring);
         outline-offset: 2px;
+        border-radius: var(--radius-sm);
+    }
+
+    /* Numbers that change in place must not reflow — timers, scores, counts. */
+    .tabular-nums {
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+@layer components {
+    /* Quiz titles and question prompts: the words are the product. */
+    .font-display {
+        font-family: var(--font-serif);
+        font-weight: 400;
+        letter-spacing: -0.01em;
+    }
+
+    /* Small uppercase section labels. */
+    .label-eyebrow {
+        font-size: var(--text-2xs);
+        line-height: var(--text-2xs--line-height);
+        letter-spacing: var(--text-2xs--letter-spacing);
+        text-transform: uppercase;
+        font-weight: 600;
+        color: var(--text-faint);
+    }
+}
+
+/*
+ * Everything animated in this app is decorative — the countdown pop, the
+ * loading bar, confetti. Honour the preference globally rather than per
+ * component, and let the components keep their non-motion state cues.
+ */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
     }
 }

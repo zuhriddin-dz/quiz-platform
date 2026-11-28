@@ -2,19 +2,16 @@
 /**
  * R5.9 — the two option layouts.
  *
- * Desktop (hover: hover AND pointer: fine):
- *     W is one option centred on top, A / S / D in a row beneath, key hints
- *     drawn on the options.
- *
- * Touch:
- *     a plain 2x2 grid, no hotkeys and no key hints.
+ * Desktop (hover: hover AND pointer: fine): W centred on top, A / S / D in a
+ * row beneath, key hints drawn on the options.
+ * Touch: a plain 2x2 grid, no hotkeys and no key hints.
  *
  * There are no other hotkeys at all — no 1-4, no A-D labels. The keys map to
  * DISPLAY positions, so they mean the same thing visually every run even
  * though the options behind them are shuffled.
  *
- * `disabled` is true during "checking…" so a second click cannot land, though
- * the state machine also refuses one.
+ * Colours are semantic tokens, so this component renders correctly on the dark
+ * play surface without knowing the surface is dark.
  */
 import { onBeforeUnmount, onMounted } from 'vue';
 
@@ -22,7 +19,7 @@ const props = defineProps<{
     options: string[];
     hasKeyboardLayout: boolean;
     disabled: boolean;
-    /** Highlighted red on the fail screen. */
+    /** Highlighted on the fail screen. */
     wrongIndex?: number | null;
 }>();
 
@@ -53,6 +50,15 @@ const onKeydown = (event: KeyboardEvent): void => {
 
 onMounted(() => window.addEventListener('keydown', onKeydown));
 onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown));
+
+/*
+ * The picked-wrong option is marked by border, tint AND an explicit label, so
+ * the state is never carried by colour alone.
+ */
+const optionClass = (index: number): string =>
+    props.wrongIndex === index
+        ? 'border-danger-border text-danger-text'
+        : 'border-border-subtle hover:border-border-strong';
 </script>
 
 <template>
@@ -62,12 +68,17 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown));
             <button
                 type="button"
                 :disabled="disabled"
-                :class="wrongIndex === 0 ? 'border-red-500 bg-red-50' : 'hover:bg-neutral-50'"
-                class="relative w-full max-w-sm rounded-lg border px-4 py-5 text-left disabled:opacity-60"
+                :class="optionClass(0)"
+                class="relative w-full max-w-md rounded-xl border bg-surface px-5 py-5 text-start text-lg transition-colors disabled:opacity-70"
                 @click="choose(0)"
             >
-                <kbd class="absolute left-3 top-3 rounded bg-neutral-100 px-1.5 text-xs font-medium">W</kbd>
-                <span class="block pl-8">{{ options[0] }}</span>
+                <kbd
+                    class="absolute start-3 top-3 rounded border border-border-subtle px-1.5 text-2xs font-semibold text-text-faint"
+                >
+                    W
+                </kbd>
+                <span class="block ps-9">{{ options[0] }}</span>
+                <span v-if="wrongIndex === 0" class="sr-only">— your answer, incorrect</span>
             </button>
         </div>
 
@@ -77,30 +88,34 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown));
                 :key="index"
                 type="button"
                 :disabled="disabled"
-                :class="wrongIndex === index ? 'border-red-500 bg-red-50' : 'hover:bg-neutral-50'"
-                class="relative rounded-lg border px-4 py-5 text-left disabled:opacity-60"
+                :class="optionClass(index)"
+                class="relative rounded-xl border bg-surface px-5 py-5 text-start text-lg transition-colors disabled:opacity-70"
                 @click="choose(index)"
             >
-                <kbd class="absolute left-3 top-3 rounded bg-neutral-100 px-1.5 text-xs font-medium">
+                <kbd
+                    class="absolute start-3 top-3 rounded border border-border-subtle px-1.5 text-2xs font-semibold text-text-faint"
+                >
                     {{ KEYS[index].toUpperCase() }}
                 </kbd>
-                <span class="block pl-8">{{ options[index] }}</span>
+                <span class="block ps-9">{{ options[index] }}</span>
+                <span v-if="wrongIndex === index" class="sr-only">— your answer, incorrect</span>
             </button>
         </div>
     </div>
 
-    <!-- Touch: 2x2, no hints -->
+    <!-- Touch: 2x2, no hints, targets sized for a thumb -->
     <div v-else class="grid grid-cols-2 gap-3">
         <button
             v-for="(option, index) in options"
             :key="index"
             type="button"
             :disabled="disabled"
-            :class="wrongIndex === index ? 'border-red-500 bg-red-50' : ''"
-            class="rounded-lg border px-4 py-6 text-left disabled:opacity-60"
+            :class="optionClass(index)"
+            class="min-h-24 rounded-xl border bg-surface px-4 py-5 text-start text-lg transition-colors disabled:opacity-70"
             @click="choose(index)"
         >
             {{ option }}
+            <span v-if="wrongIndex === index" class="sr-only">— your answer, incorrect</span>
         </button>
     </div>
 </template>

@@ -6,7 +6,7 @@
  * R7.8 — Creator Studio is a sign-in prompt for guests, not a hidden link:
  * they should be able to see that creating quizzes exists.
  */
-import { ref, watch } from 'vue';
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import SoundToggle from '@/components/SoundToggle.vue';
 
@@ -17,8 +17,8 @@ const user = () => page.props.auth?.user ?? null;
 
 const term = ref(props.search ?? '');
 const menuOpen = ref(false);
+const menuRoot = ref<HTMLElement | null>(null);
 
-// Keep the box in step when the server sends different filters back.
 watch(
     () => props.search,
     (value) => {
@@ -27,18 +27,46 @@ watch(
 );
 
 const submit = (): void => {
-    // Search always lands on Explore, wherever it was typed. `q` is dropped
-    // when empty so the URL stays clean and shareable.
     router.get('/', term.value.trim() === '' ? {} : { q: term.value.trim() }, {
         preserveState: false,
     });
 };
+
+/* A menu that cannot be dismissed by clicking away or pressing Escape is a
+   trap on touch, where there is no other obvious way out. */
+const onDocumentClick = (event: MouseEvent): void => {
+    if (menuOpen.value && !menuRoot.value?.contains(event.target as Node)) {
+        menuOpen.value = false;
+    }
+};
+
+const onKeydown = (event: KeyboardEvent): void => {
+    if (event.key === 'Escape') menuOpen.value = false;
+};
+
+onMounted(() => {
+    document.addEventListener('click', onDocumentClick);
+    document.addEventListener('keydown', onKeydown);
+});
+
+onBeforeUnmount(() => {
+    document.removeEventListener('click', onDocumentClick);
+    document.removeEventListener('keydown', onKeydown);
+});
 </script>
 
 <template>
-    <header class="border-b">
-        <div class="mx-auto flex max-w-6xl items-center gap-4 px-6 py-3">
-            <Link href="/" class="shrink-0 text-base font-semibold tracking-tight">Quiz</Link>
+    <header class="border-b border-border-subtle bg-bg/85 backdrop-blur-sm">
+        <div class="mx-auto flex max-w-6xl items-center gap-5 px-6 py-3.5">
+            <!-- The wordmark is serif, like the quiz titles and prompts: the
+                 one place the identity is stated outright. -->
+            <Link
+                href="/"
+                class="shrink-0 font-display text-xl leading-none tracking-tight"
+                aria-label="Quiz — home"
+            >
+                Quiz<span class="text-accent-text">.</span>
+            </Link>
 
             <form class="min-w-0 flex-1" role="search" @submit.prevent="submit">
                 <label for="search" class="sr-only">Search quizzes</label>
@@ -48,7 +76,7 @@ const submit = (): void => {
                     type="search"
                     placeholder="Search quizzes"
                     maxlength="80"
-                    class="w-full max-w-md rounded-md border px-3 py-1.5 text-sm"
+                    class="w-full max-w-sm rounded-lg border border-border-subtle bg-surface px-3.5 py-2 text-sm placeholder:text-text-faint focus:border-border-strong"
                 />
             </form>
 
@@ -58,36 +86,54 @@ const submit = (): void => {
                 <SoundToggle />
 
                 <template v-if="user()">
-                    <Link href="/studio" class="font-medium">Creator Studio</Link>
+                    <Link href="/studio" class="hidden font-medium hover:text-accent-text sm:block">
+                        Creator Studio
+                    </Link>
 
-                    <div class="relative">
+                    <div ref="menuRoot" class="relative">
                         <button
                             type="button"
-                            class="flex items-center gap-2"
+                            class="flex items-center rounded-full"
                             :aria-expanded="menuOpen"
                             aria-haspopup="menu"
+                            :aria-label="`Account menu for ${user()!.name}`"
                             @click="menuOpen = !menuOpen"
                         >
                             <img
                                 v-if="user()?.avatar_url"
                                 :src="user()!.avatar_url!"
-                                :alt="user()!.name"
-                                class="size-8 rounded-full"
+                                alt=""
+                                class="size-8 rounded-full ring-1 ring-border-subtle"
                             />
-                            <span v-else class="size-8 rounded-full bg-neutral-200" />
+                            <span
+                                v-else
+                                class="size-8 rounded-full bg-surface-sunken ring-1 ring-border-subtle"
+                            />
                         </button>
 
                         <div
                             v-if="menuOpen"
                             role="menu"
-                            class="absolute right-0 z-10 mt-2 w-44 rounded-md border bg-white py-1 shadow-lg"
+                            class="absolute right-0 z-20 mt-2 w-48 overflow-hidden rounded-xl border border-border-subtle bg-surface py-1 shadow-[var(--shadow-card)]"
                         >
-                            <p class="truncate px-3 py-1.5 text-xs text-neutral-500">
+                            <p class="truncate px-3.5 py-2 text-xs text-text-faint">
                                 {{ user()!.name }}
                             </p>
 
-                            <Link href="/plays" role="menuitem" class="block px-3 py-1.5 hover:bg-neutral-50">
+                            <Link
+                                href="/plays"
+                                role="menuitem"
+                                class="block px-3.5 py-2 hover:bg-surface-soft"
+                            >
                                 My plays
+                            </Link>
+
+                            <Link
+                                href="/studio"
+                                role="menuitem"
+                                class="block px-3.5 py-2 hover:bg-surface-soft sm:hidden"
+                            >
+                                Creator Studio
                             </Link>
 
                             <!-- POST, so a link cannot sign someone out. -->
@@ -95,7 +141,7 @@ const submit = (): void => {
                                 <button
                                     type="submit"
                                     role="menuitem"
-                                    class="block w-full px-3 py-1.5 text-left hover:bg-neutral-50"
+                                    class="block w-full px-3.5 py-2 text-left hover:bg-surface-soft"
                                 >
                                     Sign out
                                 </button>
@@ -106,15 +152,18 @@ const submit = (): void => {
 
                 <template v-else>
                     <!-- R7.8 — visible to guests, and a sign-in prompt. -->
-                    <a href="/auth/google/redirect" class="font-medium text-neutral-500">
+                    <a
+                        href="/auth/google/redirect"
+                        class="hidden font-medium text-text-muted hover:text-accent-text sm:block"
+                    >
                         Creator Studio
                     </a>
 
                     <a
                         href="/auth/google/redirect"
-                        class="rounded-md border px-3 py-1.5 font-medium"
+                        class="rounded-lg bg-accent px-3.5 py-2 font-medium text-on-accent transition-colors hover:bg-accent-hover"
                     >
-                        Sign in with Google
+                        Sign in
                     </a>
                 </template>
             </nav>
