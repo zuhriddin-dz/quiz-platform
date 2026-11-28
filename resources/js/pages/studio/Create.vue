@@ -26,7 +26,7 @@ const submit = (): void => {
     <Head title="New quiz" />
 
     <main class="mx-auto max-w-xl px-6 py-10">
-        <h1 class="mb-8 text-xl font-semibold tracking-tight">New quiz</h1>
+        <h1 class="mb-8 font-display text-3xl leading-tight">New quiz</h1>
 
         <form class="space-y-6" @submit.prevent="submit">
             <div>
@@ -36,23 +36,23 @@ const submit = (): void => {
                     v-model="form.title"
                     type="text"
                     maxlength="80"
-                    class="mt-1 w-full rounded-md border px-3 py-2"
+                    class="mt-1 w-full rounded-lg border border-border-subtle px-3 py-2"
                 />
-                <p v-if="form.errors.title" class="mt-1 text-sm text-red-600">{{ form.errors.title }}</p>
+                <p v-if="form.errors.title" class="mt-1 text-sm text-danger-text">{{ form.errors.title }}</p>
             </div>
 
             <div>
                 <label for="description" class="block text-sm font-medium">
-                    Description <span class="font-normal text-neutral-500">(optional)</span>
+                    Description <span class="font-normal text-text-faint">(optional)</span>
                 </label>
                 <textarea
                     id="description"
                     v-model="form.description"
                     rows="3"
                     maxlength="500"
-                    class="mt-1 w-full rounded-md border px-3 py-2"
+                    class="mt-1 w-full rounded-lg border border-border-subtle px-3 py-2"
                 />
-                <p v-if="form.errors.description" class="mt-1 text-sm text-red-600">
+                <p v-if="form.errors.description" class="mt-1 text-sm text-danger-text">
                     {{ form.errors.description }}
                 </p>
             </div>
@@ -60,7 +60,7 @@ const submit = (): void => {
             <fieldset>
                 <legend class="text-sm font-medium">Mode</legend>
 
-                <p class="mt-1 text-xs text-neutral-500">
+                <p class="mt-1 text-xs text-text-faint">
                     Strict is refereed by the server, one question at a time. Casual is checked in the
                     browser and its results are labelled self-reported. This cannot be changed once
                     the quiz is published.
@@ -73,7 +73,7 @@ const submit = (): void => {
                     </label>
                 </div>
 
-                <p v-if="form.errors.mode" class="mt-1 text-sm text-red-600">{{ form.errors.mode }}</p>
+                <p v-if="form.errors.mode" class="mt-1 text-sm text-danger-text">{{ form.errors.mode }}</p>
             </fieldset>
 
             <div>
@@ -86,10 +86,10 @@ const submit = (): void => {
                     type="number"
                     min="2"
                     max="10"
-                    class="mt-1 w-24 rounded-md border px-3 py-2"
+                    class="mt-1 w-24 rounded-lg border border-border-subtle px-3 py-2"
                 />
-                <p class="mt-1 text-xs text-neutral-500">Between 2 and 10.</p>
-                <p v-if="form.errors.seconds_per_question" class="mt-1 text-sm text-red-600">
+                <p class="mt-1 text-xs text-text-faint">Between 2 and 10.</p>
+                <p v-if="form.errors.seconds_per_question" class="mt-1 text-sm text-danger-text">
                     {{ form.errors.seconds_per_question }}
                 </p>
             </div>
@@ -97,7 +97,7 @@ const submit = (): void => {
             <button
                 type="submit"
                 :disabled="form.processing"
-                class="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+                class="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-on-accent disabled:opacity-50"
             >
                 Create draft
             </button>

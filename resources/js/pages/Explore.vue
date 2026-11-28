@@ -108,7 +108,7 @@ const segment = (active: boolean): string =>
                         type="button"
                         :aria-pressed="filters.mode === mode.value"
                         :class="segment(filters.mode === mode.value)"
-                        class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
+                        class="rounded-lg px-3 py-1 text-xs font-medium transition-colors"
                         @click="apply({ mode: mode.value })"
                     >
                         {{ mode.label }}
@@ -129,7 +129,7 @@ const segment = (active: boolean): string =>
                         type="button"
                         :aria-pressed="filters.sort === sort.value"
                         :class="segment(filters.sort === sort.value)"
-                        class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
+                        class="rounded-lg px-3 py-1 text-xs font-medium transition-colors"
                         @click="apply({ sort: sort.value })"
                     >
                         {{ sort.label }}
@@ -193,7 +193,7 @@ const segment = (active: boolean): string =>
                             ? 'border-border-strong bg-surface font-medium'
                             : 'border-transparent text-text-muted hover:bg-surface-soft'
                     "
-                    class="rounded-lg border px-3 py-1.5 text-sm"
+                    class="rounded-lg border border-border-subtle px-3 py-1.5 text-sm"
                     v-html="link.label"
                 />
                 <span

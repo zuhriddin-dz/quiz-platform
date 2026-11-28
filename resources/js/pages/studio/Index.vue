@@ -9,6 +9,7 @@ import { ref } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import EmptyState from '@/components/EmptyState.vue';
+import StatusPill from '@/components/StatusPill.vue';
 
 defineOptions({ layout: AppLayout });
 
@@ -37,12 +38,11 @@ type StudioQuiz = {
 
 defineProps<{ quizzes: StudioQuiz[] }>();
 
-const statusClass = (status: StudioQuiz['status']): string =>
-    ({
-        draft: 'bg-neutral-100 text-neutral-700',
-        published: 'bg-emerald-100 text-emerald-800',
-        unpublished: 'bg-amber-100 text-amber-800',
-    })[status];
+/* The word carries the meaning; the tone only reinforces it. There is no
+ * warning tone in the system, so `unpublished` reads as quiet rather than
+ * alarming — it is a deliberate act, not a problem. */
+const statusTone = (status: StudioQuiz['status']): 'success' | 'neutral' | 'quiet' =>
+    ({ draft: 'neutral', published: 'success', unpublished: 'quiet' } as const)[status];
 
 /* ---------------------------------------------------------------- publishing
  * R4.3 — Listed or Unlisted is chosen again on EVERY publish, including
@@ -100,13 +100,13 @@ const destroy = (quiz: StudioQuiz): void => {
     <main class="mx-auto max-w-4xl px-6 py-10">
         <header class="mb-8 flex items-center justify-between gap-4">
             <div>
-                <h1 class="text-xl font-semibold tracking-tight">Creator Studio</h1>
-                <p class="text-sm text-neutral-500">Your quizzes.</p>
+                <h1 class="font-display text-3xl leading-tight">Creator Studio</h1>
+                <p class="mt-2 text-text-muted">Everything you have made, published or not.</p>
             </div>
 
             <Link
                 href="/studio/quizzes/create"
-                class="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white"
+                class="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-on-accent"
             >
                 New quiz
             </Link>
@@ -120,23 +120,21 @@ const destroy = (quiz: StudioQuiz): void => {
             <template #action>
                 <Link
                     href="/studio/quizzes/create"
-                    class="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white"
+                    class="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-on-accent"
                 >
                     Create your first quiz
                 </Link>
             </template>
         </EmptyState>
 
-        <ul v-else class="divide-y rounded-lg border">
+        <ul v-else class="divide-y rounded-lg border border-border-subtle">
             <li v-for="quiz in quizzes" :key="quiz.ulid" class="p-4">
                 <div class="flex items-start gap-4">
                     <div class="min-w-0 flex-1">
                         <p class="truncate font-medium">{{ quiz.title }}</p>
 
-                        <p class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-neutral-500">
-                            <span :class="statusClass(quiz.status)" class="rounded px-1.5 py-0.5 font-medium">
-                                {{ quiz.status_label }}
-                            </span>
+                        <p class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-faint">
+                            <StatusPill :tone="statusTone(quiz.status)">{{ quiz.status_label }}</StatusPill>
 
                             <!-- Visibility only means something once published. -->
                             <span v-if="quiz.status === 'published'">
@@ -164,7 +162,7 @@ const destroy = (quiz: StudioQuiz): void => {
                             v-if="quiz.can.publish"
                             type="button"
                             :disabled="quiz.publish_blockers.length > 0"
-                            class="font-medium underline disabled:cursor-not-allowed disabled:text-neutral-400 disabled:no-underline"
+                            class="font-medium underline disabled:cursor-not-allowed disabled:text-text-faint disabled:no-underline"
                             @click="openPublishDialog(quiz)"
                         >
                             {{ quiz.status === 'unpublished' ? 'Publish again' : 'Publish' }}
@@ -200,7 +198,7 @@ const destroy = (quiz: StudioQuiz): void => {
                         <button
                             v-if="quiz.can.delete"
                             type="button"
-                            class="font-medium text-red-600 underline"
+                            class="font-medium text-danger-text underline"
                             @click="destroy(quiz)"
                         >
                             Delete
@@ -212,7 +210,7 @@ const destroy = (quiz: StudioQuiz): void => {
                      greying it out. -->
                 <ul
                     v-if="quiz.publish_blockers.length > 0"
-                    class="mt-3 list-inside list-disc rounded-md bg-amber-50 p-3 text-xs text-amber-900"
+                    class="mt-3 list-inside list-disc rounded-lg border border-border-subtle bg-surface-soft p-3 text-xs text-text-muted"
                 >
                     <li v-for="blocker in quiz.publish_blockers" :key="blocker">{{ blocker }}</li>
                 </ul>
@@ -227,10 +225,10 @@ const destroy = (quiz: StudioQuiz): void => {
             aria-modal="true"
             aria-labelledby="publish-title"
         >
-            <div class="w-full max-w-md rounded-lg bg-white p-6">
+            <div class="w-full max-w-md rounded-lg bg-surface p-6">
                 <h2 id="publish-title" class="text-lg font-semibold">Publish “{{ publishing.title }}”</h2>
 
-                <p class="mt-2 text-sm text-neutral-600">
+                <p class="mt-2 text-sm text-text-muted">
                     Once published, the questions, options, timer and mode are fixed permanently. To
                     change anything later, duplicate it as a draft.
                 </p>
@@ -242,7 +240,7 @@ const destroy = (quiz: StudioQuiz): void => {
                         <input v-model="publishForm.is_listed" type="radio" :value="true" class="mt-1" />
                         <span>
                             <span class="font-medium">Listed</span>
-                            <span class="block text-neutral-500">Shown on Explore to everyone.</span>
+                            <span class="block text-text-faint">Shown on Explore to everyone.</span>
                         </span>
                     </label>
 
@@ -250,20 +248,20 @@ const destroy = (quiz: StudioQuiz): void => {
                         <input v-model="publishForm.is_listed" type="radio" :value="false" class="mt-1" />
                         <span>
                             <span class="font-medium">Unlisted</span>
-                            <span class="block text-neutral-500">
+                            <span class="block text-text-faint">
                                 Only reachable by its link. Anyone with the link can play it.
                             </span>
                         </span>
                     </label>
                 </fieldset>
 
-                <p v-if="publishForm.errors.is_listed" class="mt-2 text-sm text-red-600">
+                <p v-if="publishForm.errors.is_listed" class="mt-2 text-sm text-danger-text">
                     {{ publishForm.errors.is_listed }}
                 </p>
 
                 <!-- Server-side publish validation, in case the quiz changed
                      in another tab since this page loaded. -->
-                <p v-if="(publishForm.errors as Record<string, string>).publish" class="mt-2 text-sm text-red-600">
+                <p v-if="(publishForm.errors as Record<string, string>).publish" class="mt-2 text-sm text-danger-text">
                     {{ (publishForm.errors as Record<string, string>).publish }}
                 </p>
 
@@ -275,7 +273,7 @@ const destroy = (quiz: StudioQuiz): void => {
                     <button
                         type="button"
                         :disabled="publishForm.processing || publishForm.is_listed === null"
-                        class="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+                        class="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-on-accent disabled:opacity-50"
                         @click="confirmPublish"
                     >
                         Publish

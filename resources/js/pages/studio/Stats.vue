@@ -84,9 +84,9 @@ const barWidth = (value: number | null): string => (value === null ? '0%' : `${v
     <div>
         <header class="mb-6 flex flex-wrap items-start justify-between gap-4">
             <div>
-                <h1 class="text-xl font-semibold tracking-tight">{{ quiz.title }}</h1>
+                <h1 class="font-display text-3xl leading-tight">{{ quiz.title }}</h1>
 
-                <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-neutral-500">
+                <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-faint">
                     <ModeBadge :mode="quiz.mode" :label="quiz.mode_label" />
                     <span>{{ quiz.status_label }}</span>
                     <span>{{ questionCount }} questions</span>
@@ -100,7 +100,7 @@ const barWidth = (value: number | null): string => (value === null ? '0%' : `${v
         <!-- R9.4 — casual results are self-reported -->
         <p
             v-if="quiz.is_self_reported"
-            class="mb-4 rounded-md bg-amber-50 p-3 text-sm text-amber-900"
+            class="mb-4 rounded-lg border border-border-subtle bg-surface-soft p-4 text-sm text-text-muted"
         >
             <strong>Self-reported.</strong> This is a casual quiz, so the browser ran the timer and
             reported the results. Correctness was re-checked on the server, but the times below are
@@ -108,30 +108,30 @@ const barWidth = (value: number | null): string => (value === null ? '0%' : `${v
         </p>
 
         <!-- The population, stated plainly. -->
-        <p class="mb-8 text-xs text-neutral-500">
+        <p class="mb-8 text-xs text-text-faint">
             Counts finished runs only — abandoned runs are excluded, and so are your own test plays.
         </p>
 
         <!-- R9.1 -->
         <section class="mb-10">
-            <h2 class="mb-3 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+            <h2 class="mb-3 label-eyebrow">
                 Totals
             </h2>
 
             <dl class="grid gap-4 sm:grid-cols-3">
-                <div class="rounded-lg border p-4">
-                    <dt class="text-xs text-neutral-500">Runs</dt>
+                <div class="rounded-lg border border-border-subtle p-4">
+                    <dt class="text-xs text-text-faint">Runs</dt>
                     <dd class="mt-1 text-2xl font-semibold tabular-nums">
                         {{ analytics.totals.runs }}
                     </dd>
                 </div>
 
-                <div class="rounded-lg border p-4">
-                    <dt class="text-xs text-neutral-500">Unique players</dt>
+                <div class="rounded-lg border border-border-subtle p-4">
+                    <dt class="text-xs text-text-faint">Unique players</dt>
                     <dd class="mt-1 text-2xl font-semibold tabular-nums">
                         {{ analytics.totals.unique_players }}
                     </dd>
-                    <dd class="mt-1 text-xs text-neutral-400">
+                    <dd class="mt-1 text-xs text-text-faint">
                         {{ analytics.totals.unique_users }} signed in,
                         {{ analytics.totals.unique_guests }} guest{{
                             analytics.totals.unique_guests === 1 ? '' : 's'
@@ -139,12 +139,12 @@ const barWidth = (value: number | null): string => (value === null ? '0%' : `${v
                     </dd>
                 </div>
 
-                <div class="rounded-lg border p-4">
-                    <dt class="text-xs text-neutral-500">Pass rate</dt>
+                <div class="rounded-lg border border-border-subtle p-4">
+                    <dt class="text-xs text-text-faint">Pass rate</dt>
                     <dd class="mt-1 text-2xl font-semibold tabular-nums">
                         {{ percent(analytics.totals.pass_rate) }}
                     </dd>
-                    <dd class="mt-1 text-xs text-neutral-400">
+                    <dd class="mt-1 text-xs text-text-faint">
                         {{ analytics.totals.passes }} of {{ analytics.totals.runs }}
                     </dd>
                 </div>
@@ -153,11 +153,11 @@ const barWidth = (value: number | null): string => (value === null ? '0%' : `${v
 
         <!-- R9.2 -->
         <section class="mb-10">
-            <h2 class="mb-3 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+            <h2 class="mb-3 label-eyebrow">
                 Per question
             </h2>
 
-            <p v-if="analytics.totals.runs === 0" class="rounded-lg border border-dashed p-6 text-sm text-neutral-500">
+            <p v-if="analytics.totals.runs === 0" class="rounded-lg border border-border-subtle border-dashed p-6 text-sm text-text-faint">
                 No finished runs yet.
             </p>
 
@@ -165,64 +165,64 @@ const barWidth = (value: number | null): string => (value === null ? '0%' : `${v
                 <li
                     v-for="question in analytics.questions"
                     :key="question.number"
-                    class="rounded-lg border p-4"
+                    class="rounded-lg border border-border-subtle p-4"
                 >
                     <div class="flex flex-wrap items-baseline justify-between gap-2">
                         <p class="font-medium">
-                            <span class="text-neutral-400">{{ question.number }}.</span>
+                            <span class="text-text-faint">{{ question.number }}.</span>
                             {{ question.prompt }}
                         </p>
 
                         <p class="text-sm tabular-nums">
                             <span class="font-semibold">{{ percent(question.correct_rate) }}</span>
-                            <span class="text-neutral-500"> correct</span>
+                            <span class="text-text-faint"> correct</span>
                         </p>
                     </div>
 
-                    <div class="mt-2 h-1 overflow-hidden rounded bg-neutral-200">
-                        <div class="h-full bg-neutral-900" :style="{ width: barWidth(question.correct_rate) }" />
+                    <div class="mt-2 h-1 overflow-hidden rounded bg-surface-sunken">
+                        <div class="h-full bg-accent" :style="{ width: barWidth(question.correct_rate) }" />
                     </div>
 
-                    <dl class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-neutral-500">
+                    <dl class="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-text-faint">
                         <div class="flex gap-1">
                             <dt>Reached by</dt>
-                            <dd class="font-medium text-neutral-700 tabular-nums">
+                            <dd class="font-medium text-text-muted tabular-nums">
                                 {{ question.answers }}
                             </dd>
                         </div>
 
                         <div class="flex gap-1">
                             <dt>Average time</dt>
-                            <dd class="font-medium text-neutral-700 tabular-nums">
+                            <dd class="font-medium text-text-muted tabular-nums">
                                 {{ seconds(question.average_time_ms) }}
                             </dd>
                         </div>
 
                         <div class="flex gap-1">
                             <dt>Wrong</dt>
-                            <dd class="font-medium text-neutral-700 tabular-nums">
+                            <dd class="font-medium text-text-muted tabular-nums">
                                 {{ question.failures.wrong_answer }}
                             </dd>
                         </div>
 
                         <div class="flex gap-1">
                             <dt>Timed out</dt>
-                            <dd class="font-medium text-neutral-700 tabular-nums">
+                            <dd class="font-medium text-text-muted tabular-nums">
                                 {{ question.failures.timeout }}
                             </dd>
                         </div>
 
                         <div class="flex gap-1">
                             <dt>Left the tab</dt>
-                            <dd class="font-medium text-neutral-700 tabular-nums">
+                            <dd class="font-medium text-text-muted tabular-nums">
                                 {{ question.failures.focus_lost }}
                             </dd>
                         </div>
                     </dl>
 
-                    <p v-if="question.most_picked_wrong_option" class="mt-2 text-xs text-neutral-500">
+                    <p v-if="question.most_picked_wrong_option" class="mt-2 text-xs text-text-faint">
                         Most-picked wrong answer:
-                        <span class="font-medium text-neutral-700">
+                        <span class="font-medium text-text-muted">
                             “{{ question.most_picked_wrong_option.text }}”
                         </span>
                         ({{ question.most_picked_wrong_option.picks }}
@@ -234,20 +234,20 @@ const barWidth = (value: number | null): string => (value === null ? '0%' : `${v
 
         <!-- R9.3 -->
         <section>
-            <h2 class="mb-3 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+            <h2 class="mb-3 label-eyebrow">
                 Per player
             </h2>
 
             <p
                 v-if="analytics.players.length === 0 && !analytics.guests"
-                class="rounded-lg border border-dashed p-6 text-sm text-neutral-500"
+                class="rounded-lg border border-border-subtle border-dashed p-6 text-sm text-text-faint"
             >
                 Nobody has finished a run yet.
             </p>
 
-            <div v-else class="overflow-x-auto rounded-lg border">
+            <div v-else class="overflow-x-auto rounded-lg border border-border-subtle">
                 <table class="w-full text-sm">
-                    <thead class="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500">
+                    <thead class="bg-surface-soft text-xs uppercase tracking-wide text-text-faint">
                         <tr>
                             <th scope="col" class="px-4 py-2 text-left font-medium">Player</th>
                             <th scope="col" class="px-4 py-2 text-right font-medium">Attempts</th>
@@ -266,11 +266,11 @@ const barWidth = (value: number | null): string => (value === null ? '0%' : `${v
                                         :alt="player.name"
                                         class="size-6 rounded-full"
                                     />
-                                    <span v-else class="size-6 rounded-full bg-neutral-200" />
+                                    <span v-else class="size-6 rounded-full bg-surface-sunken" />
                                     <span>{{ player.name }}</span>
                                     <span
                                         v-if="player.passed"
-                                        class="rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-medium text-emerald-800"
+                                        class="inline-flex items-center rounded-md border border-border-subtle px-2 py-0.5 text-2xs font-semibold uppercase tracking-wide text-success-text"
                                     >
                                         Passed
                                     </span>
@@ -284,10 +284,10 @@ const barWidth = (value: number | null): string => (value === null ? '0%' : `${v
                         </tr>
 
                         <!-- R9.3 — one row for every guest, together. -->
-                        <tr v-if="analytics.guests" class="bg-neutral-50">
+                        <tr v-if="analytics.guests" class="bg-surface-soft">
                             <td class="px-4 py-2">
                                 <span class="font-medium">Guests</span>
-                                <span class="ml-2 text-xs text-neutral-500">
+                                <span class="ml-2 text-xs text-text-faint">
                                     {{ analytics.guests.players }} player{{
                                         analytics.guests.players === 1 ? '' : 's'
                                     }}<span v-if="analytics.guests.passes > 0">
@@ -307,7 +307,7 @@ const barWidth = (value: number | null): string => (value === null ? '0%' : `${v
                 </table>
             </div>
 
-            <p class="mt-2 text-xs text-neutral-400">
+            <p class="mt-2 text-xs text-text-faint">
                 Guests are grouped together — they have no account to attribute a run to.
             </p>
         </section>

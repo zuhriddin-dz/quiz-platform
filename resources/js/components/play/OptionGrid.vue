@@ -69,7 +69,7 @@ const optionClass = (index: number): string =>
                 type="button"
                 :disabled="disabled"
                 :class="optionClass(0)"
-                class="relative w-full max-w-md rounded-xl border bg-surface px-5 py-5 text-start text-lg transition-colors disabled:opacity-70"
+                class="relative w-full max-w-md rounded-xl border border-border-subtle bg-surface px-5 py-5 text-start text-lg transition-colors disabled:opacity-70"
                 @click="choose(0)"
             >
                 <kbd
@@ -89,7 +89,7 @@ const optionClass = (index: number): string =>
                 type="button"
                 :disabled="disabled"
                 :class="optionClass(index)"
-                class="relative rounded-xl border bg-surface px-5 py-5 text-start text-lg transition-colors disabled:opacity-70"
+                class="relative rounded-xl border border-border-subtle bg-surface px-5 py-5 text-start text-lg transition-colors disabled:opacity-70"
                 @click="choose(index)"
             >
                 <kbd
@@ -111,7 +111,7 @@ const optionClass = (index: number): string =>
             type="button"
             :disabled="disabled"
             :class="optionClass(index)"
-            class="min-h-24 rounded-xl border bg-surface px-4 py-5 text-start text-lg transition-colors disabled:opacity-70"
+            class="min-h-24 rounded-xl border border-border-subtle bg-surface px-4 py-5 text-start text-lg transition-colors disabled:opacity-70"
             @click="choose(index)"
         >
             {{ option }}

@@ -13,7 +13,7 @@ const { muted, toggleMuted } = useSound();
 <template>
     <button
         type="button"
-        class="rounded p-1.5 text-neutral-500 hover:bg-neutral-100"
+        class="rounded p-1.5 text-text-faint hover:bg-surface-sunken"
         :aria-pressed="muted"
         :title="muted ? 'Unmute sound' : 'Mute sound'"
         @click="toggleMuted"

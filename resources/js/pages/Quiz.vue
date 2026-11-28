@@ -302,7 +302,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown));
                         ? 'border-accent bg-accent text-on-accent'
                         : 'border-border-strong hover:bg-surface-soft'
                 "
-                class="rounded-lg border px-4 py-1.5 text-sm font-medium tabular-nums transition-colors disabled:opacity-60"
+                class="rounded-lg border border-border-subtle px-4 py-1.5 text-sm font-medium tabular-nums transition-colors disabled:opacity-60"
                 :title="has_voted ? 'Remove your upvote' : 'Upvote this quiz'"
                 @click="toggleVote"
             >

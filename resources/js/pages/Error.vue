@@ -57,14 +57,14 @@ const copy = computed(
 <template>
     <Head :title="copy.title" />
 
-    <div class="rounded-lg border border-dashed p-12 text-center">
-        <p class="text-xs font-semibold uppercase tracking-wide text-neutral-400">{{ status }}</p>
-        <h1 class="mt-2 text-lg font-semibold">{{ copy.title }}</h1>
-        <p class="mx-auto mt-2 max-w-md text-sm text-neutral-500">{{ copy.body }}</p>
+    <div class="rounded-xl border border-dashed border-border-subtle bg-surface/60 px-6 py-16 text-center">
+        <p class="label-eyebrow">{{ status }}</p>
+        <h1 class="mt-3 font-display text-2xl">{{ copy.title }}</h1>
+        <p class="mx-auto mt-2 max-w-md text-sm text-text-muted">{{ copy.body }}</p>
 
         <Link
             href="/"
-            class="mt-6 inline-block rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white"
+            class="mt-6 inline-block rounded-lg bg-accent px-4 py-2 text-sm font-medium text-on-accent"
         >
             Back to Explore
         </Link>

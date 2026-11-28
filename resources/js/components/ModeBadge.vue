@@ -29,7 +29,7 @@ const hint =
 <template>
     <span class="inline-flex flex-col gap-1">
         <span
-            class="inline-flex w-fit items-center gap-1.5 rounded-md border border-border-subtle px-2 py-0.5 text-2xs font-semibold uppercase tracking-wide text-text-muted"
+            class="inline-flex w-fit items-center gap-1.5 rounded-lg border border-border-subtle px-2 py-0.5 text-2xs font-semibold uppercase tracking-wide text-text-muted"
             :title="hint"
         >
             <span
